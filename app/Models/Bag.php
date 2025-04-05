@@ -10,11 +10,20 @@ class Bag extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = ['name', 'description', 'price'];
+    protected $fillable = [
+        'name',
+        'description',
+        'price'
+    ];
 
     public function images()
     {
         return $this->hasMany(BagImage::class);
+    }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
     }
 
     public function primaryImage()

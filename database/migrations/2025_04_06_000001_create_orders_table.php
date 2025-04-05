@@ -6,17 +6,15 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-    public function up(): void
+    public function up()
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('bag_id')->constrained()->onDelete('cascade');
             $table->decimal('total', 10, 2);
-            $table->string('status')->default('pending');
-            $table->string('payment_status')->default('pending');
+            $table->enum('status', ['pending', 'completed', 'cancelled']);
+            $table->enum('payment_status', ['pending', 'paid', 'failed'])->default('pending');
             $table->string('shipping_address');
             $table->string('shipping_city');
             $table->string('shipping_country');
@@ -25,10 +23,7 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
+    public function down()
     {
         Schema::dropIfExists('orders');
     }
