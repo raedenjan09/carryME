@@ -18,3 +18,18 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions) {
         //
     })->create();
+
+/*
+|--------------------------------------------------------------------------
+| Application Middleware
+|--------------------------------------------------------------------------
+*/
+
+$app->middleware([
+    // ...existing middleware...
+]);
+
+$app->routeMiddleware([
+    // ...existing middleware...
+    'admin' => App\Http\Middleware\AdminMiddleware::class,
+]);

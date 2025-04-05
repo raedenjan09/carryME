@@ -5,6 +5,12 @@
 <div class="container-fluid">
     <h1 class="h3 mb-4">Dashboard</h1>
 
+    @if(session('error'))
+        <div class="alert alert-danger">
+            {{ session('error') }}
+        </div>
+    @endif
+
     <!-- Stats Cards -->
     <div class="row mb-4">
         <div class="col-xl-3 col-md-6 mb-4">
@@ -29,7 +35,7 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total Users</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalUsers ?? 0 }}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ isset($totalUsers) ? $totalUsers : 0 }}</div>
                         </div>
                         <div class="col-auto">
                             <i class="bi bi-people fa-2x text-gray-300"></i>
@@ -45,7 +51,7 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Total Products</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalProducts ?? 0 }}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ isset($totalProducts) ? $totalProducts : 0 }}</div>
                         </div>
                         <div class="col-auto">
                             <i class="bi bi-bag fa-2x text-gray-300"></i>
@@ -61,7 +67,7 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Total Orders</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalOrders ?? 0 }}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ isset($totalOrders) ? $totalOrders : 0 }}</div>
                         </div>
                         <div class="col-auto">
                             <i class="bi bi-cart fa-2x text-gray-300"></i>
@@ -72,7 +78,7 @@
         </div>
     </div>
 
-    <!-- Charts Row -->
+    <!-- Charts -->
     <div class="row mb-4">
         <div class="col-xl-6">
             <div class="card shadow mb-4">
@@ -160,52 +166,76 @@
 
 @push('scripts')
 <script>
-    // Sales Chart
-    const salesCtx = document.getElementById('salesChart').getContext('2d');
-    new Chart(salesCtx, {
-        type: 'line',
-        data: {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-            datasets: [{
-                label: 'Sales ($)',
-                data: [1000, 2000, 1500, 3000, 2500, 4000],
-                borderColor: 'rgba(78, 115, 223, 1)',
-                tension: 0.3,
-                fill: false
-            }]
-        },
-        options: {
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            }
-        }
-    });
+document.addEventListener('DOMContentLoaded', function() {
+    // Get data from controller with fallback
+    const salesData = @json($salesData ?? []);
+    const userGrowthData = @json($userGrowthData ?? []);
 
-    // User Growth Chart
-    const userCtx = document.getElementById('userGrowthChart').getContext('2d');
-    new Chart(userCtx, {
-        type: 'bar',
-        data: {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-            datasets: [{
-                label: 'New Users',
-                data: [50, 30, 45, 60, 40, 75],
-                backgroundColor: 'rgba(28, 200, 138, 0.5)',
-                borderColor: 'rgba(28, 200, 138, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
+    // Sales Chart - only render if we have data
+    if (salesData.length > 0) {
+        const salesCtx = document.getElementById('salesChart').getContext('2d');
+        new Chart(salesCtx, {
+            type: 'line',
+            data: {
+                labels: salesData.map(item => item.month),
+                datasets: [{
+                    label: 'Sales ($)',
+                    data: salesData.map(item => item.total),
+                    borderColor: 'rgba(78, 115, 223, 1)',
+                    tension: 0.3,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toLocaleString();
+                            }
+                        }
+                    }
                 }
             }
-        }
-    });
+        });
+    } else {
+        document.getElementById('salesChart').innerHTML = '<div class="text-center p-4">No sales data available</div>';
+    }
+
+    // User Growth Chart - only render if we have data
+    if (userGrowthData.length > 0) {
+        const userCtx = document.getElementById('userGrowthChart').getContext('2d');
+        new Chart(userCtx, {
+            type: 'bar',
+            data: {
+                labels: userGrowthData.map(item => item.month),
+                datasets: [{
+                    label: 'New Users',
+                    data: userGrowthData.map(item => item.count),
+                    backgroundColor: 'rgba(28, 200, 138, 0.5)',
+                    borderColor: 'rgba(28, 200, 138, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+    } else {
+        document.getElementById('userGrowthChart').innerHTML = '<div class="text-center p-4">No user growth data available</div>';
+    }
+});
 </script>
 @endpush

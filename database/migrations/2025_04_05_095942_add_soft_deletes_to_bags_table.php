@@ -1,4 +1,4 @@
-   <?php
+<?php
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -12,9 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('bags', function (Blueprint $table) {
-            if (!Schema::hasColumn('bags', 'image')) {
-                $table->string('image')->nullable()->after('price');
-            }
+            $table->softDeletes();
         });
     }
 
@@ -24,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('bags', function (Blueprint $table) {
-            $table->dropColumn('image');
+            $table->dropSoftDeletes();
         });
     }
 };

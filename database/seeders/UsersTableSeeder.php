@@ -16,18 +16,22 @@ class UsersTableSeeder extends Seeder
             'email' => 'admin@bagsxury.com',
             'password' => Hash::make('password'),
             'role' => 'admin',
-            'created_at' => now(),
+            'created_at' => now()->subMonths(6),
             'updated_at' => now()
         ]);
 
-        // Create regular user
-        User::create([
-            'name' => 'Regular User',
-            'email' => 'user@bagsxury.com',
-            'password' => Hash::make('password'),
-            'role' => 'user',
-            'created_at' => now(),
-            'updated_at' => now()
-        ]);
+        // Create 20 regular users with random creation dates
+        for ($i = 1; $i <= 20; $i++) {
+            $createdAt = now()->subMonths(rand(0, 5))->subDays(rand(0, 30));
+            
+            User::create([
+                'name' => 'User ' . $i,
+                'email' => 'user' . $i . '@bagsxury.com',
+                'password' => Hash::make('password'),
+                'role' => 'user',
+                'created_at' => $createdAt,
+                'updated_at' => $createdAt
+            ]);
+        }
     }
 }

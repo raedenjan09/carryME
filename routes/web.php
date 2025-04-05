@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\BagController;
+use App\Http\Controllers\Admin\BagImageController;
 
 // Welcome Route
 Route::get('/', function () {
@@ -22,11 +23,22 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout');
 // Protected Routes
 Route::middleware(['auth'])->group(function () {
     // Admin Routes
-    Route::middleware(['admin'])->prefix('admin')->group(function () {
-        Route::get('/', [DashboardController::class, 'index'])->name('admin.dashboard');
-        Route::resource('bags', BagController::class);
-        Route::resource('users', UserController::class);
+    Route::middleware(['auth', 'admin'])->group(function () {
+        Route::prefix('admin')->group(function () {
+            Route::get('/dashboard', function () {
+                return view('admin.dashboard');
+            })->name('admin.dashboard');
+            
+            Route::resource('bags', BagController::class);
+            Route::post('bags/import', [BagController::class, 'import'])->name('bags.import');
+            Route::post('bags/{bag}/restore', [BagController::class, 'restore'])->name('bags.restore');
+        });
+
+        Route::delete('/bag-images/{bagImage}', [BagImageController::class, 'destroy'])->name('bag-images.destroy');
+        Route::post('/bag-images/{bagImage}/make-primary', [BagImageController::class, 'makePrimary'])->name('bag-images.make-primary');
     });
+
+    Route::resource('users', UserController::class);
 
     // User Routes
     Route::get('/home', function() {
