@@ -24,14 +24,15 @@
 
     <div class="card shadow">
         <div class="card-body">
-            <table class="table" id="bagsTable">
+            <table class="table table-bordered" id="bagsTable">
                 <thead>
                     <tr>
-                        <th>Image</th>
                         <th>Name</th>
+                        <th>Description</th>
                         <th>Price</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th>Category</th>
+                        <th>Image</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
             </table>
@@ -82,17 +83,18 @@
 <script>
 $(document).ready(function() {
     $('#bagsTable').DataTable({
-        processing: true,
-        serverSide: true,
-        ajax: "{{ route('bags.index') }}",
-        columns: [
-            {data: 'image', name: 'image', orderable: false, searchable: false},
-            {data: 'name', name: 'name'},
-            {data: 'price', name: 'price'},
-            {data: 'status', name: 'status'},
-            {data: 'action', name: 'action', orderable: false, searchable: false}
-        ]
-    });
+    processing: true,
+    serverSide: true,
+    ajax: "{{ route('bags.index') }}", // Ensure this route exists
+    columns: [
+        { data: 'name', name: 'name' },
+        { data: 'description', name: 'description' },
+        { data: 'price', name: 'price' },
+        { data: 'category', name: 'category' },
+        { data: 'image', name: 'image', orderable: false, searchable: false },
+        { data: 'action', name: 'action', orderable: false, searchable: false }
+    ]
+});
 });
 
 function deleteBag(id) {

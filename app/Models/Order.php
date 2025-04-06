@@ -11,7 +11,6 @@ class Order extends Model
 
     protected $fillable = [
         'user_id',
-        'bag_id',
         'total',
         'status',
         'payment_status',
@@ -26,8 +25,14 @@ class Order extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function bag()
+    public function items()
     {
-        return $this->belongsTo(Bag::class);
+        return $this->hasMany(OrderItem::class);
+    }
+
+    public function bags()
+    {
+        return $this->belongsToMany(Bag::class, 'order_items')
+                    ->withPivot('quantity', 'price');
     }
 }

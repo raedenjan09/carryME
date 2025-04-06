@@ -1,11 +1,10 @@
-views/welcome.blade.php
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BagXury - Luxury Bags Collection</title>
-    <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+    <title>Welcome to BagXury</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50">
     <!-- Navigation -->
@@ -20,7 +19,7 @@ views/welcome.blade.php
                         @if(auth()->user()->role === 'admin')
                             <a href="{{ route('admin.dashboard') }}" class="text-gray-700 hover:text-gray-900">Dashboard</a>
                         @else
-                            <a href="{{ route('home') }}" class="text-gray-700 hover:text-gray-900">My Account</a>
+                            <a href="{{ route('user.dashboard') }}" class="text-gray-700 hover:text-gray-900">My Account</a>
                         @endif
                         <form method="POST" action="{{ route('logout') }}" class="inline">
                             @csrf
@@ -49,7 +48,8 @@ views/welcome.blade.php
                         </p>
                         <div class="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
                             <div class="rounded-md shadow">
-                                <a href="#" class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 md:py-4 md:text-lg md:px-10">
+                                <!-- Shop Now Button -->
+                                <a href="{{ route('user.dashboard') }}" class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 md:py-4 md:text-lg md:px-10">
                                     Shop Now
                                 </a>
                             </div>
@@ -59,34 +59,34 @@ views/welcome.blade.php
             </div>
         </div>
         <div class="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
-            <img class="h-56 w-full object-cover sm:h-72 md:h-96 lg:w-full lg:h-full" src="https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1074&q=80" alt="Luxury Bags">
+            <!-- Use leather.jpg as the Hero Section image -->
+            <img class="h-56 w-full object-cover sm:h-72 md:h-96 lg:w-full lg:h-full" src="{{ asset('images/bags/leather.jpg') }}" alt="Luxury Leather Bag">
         </div>
     </div>
 
-    <!-- Features Section -->
+    <!-- Featured Products Section -->
     <div class="py-12 bg-gray-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="lg:text-center">
-                <h2 class="text-base text-indigo-600 font-semibold tracking-wide uppercase">Features</h2>
+                <h2 class="text-base text-indigo-600 font-semibold tracking-wide uppercase">Featured Products</h2>
                 <p class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
-                    Why Choose BagXury?
+                    Explore Our Bestsellers
                 </p>
             </div>
 
             <div class="mt-10">
                 <div class="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3">
-                    <div class="bg-white p-6 rounded-lg shadow">
-                        <h3 class="text-lg font-medium text-gray-900">Authentic Products</h3>
-                        <p class="mt-2 text-base text-gray-500">All our products are 100% authentic and verified.</p>
-                    </div>
-                    <div class="bg-white p-6 rounded-lg shadow">
-                        <h3 class="text-lg font-medium text-gray-900">Worldwide Shipping</h3>
-                        <p class="mt-2 text-base text-gray-500">We deliver to customers worldwide with care.</p>
-                    </div>
-                    <div class="bg-white p-6 rounded-lg shadow">
-                        <h3 class="text-lg font-medium text-gray-900">24/7 Support</h3>
-                        <p class="mt-2 text-base text-gray-500">Our customer support team is always here to help.</p>
-                    </div>
+                    @foreach($products as $product)
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <img class="h-48 w-full object-cover rounded-md" src="{{ asset('images/' . $product->image) }}" alt="{{ $product->name }}">
+                            <h3 class="mt-4 text-lg font-medium text-gray-900">{{ $product->name }}</h3>
+                            <p class="mt-2 text-base text-gray-500">{{ Str::limit($product->description, 100) }}</p>
+                            <div class="mt-4 flex justify-between items-center">
+                                <span class="text-indigo-600 font-bold">${{ number_format($product->price, 2) }}</span>
+                                <a href="#" class="text-indigo-600 hover:text-indigo-800 font-medium">View Details</a>
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
             </div>
         </div>
@@ -100,5 +100,17 @@ views/welcome.blade.php
             </div>
         </div>
     </footer>
+
+    <!-- Welcome Section -->
+    <div class="text-center py-12">
+        <h1>Welcome to BagXury</h1>
+        <p>Discover our exclusive collection of luxury bags.</p>
+        @auth
+            <form method="POST" action="{{ route('logout') }}" class="inline">
+                @csrf
+                <button type="submit" class="text-gray-700 hover:text-gray-900">Logout</button>
+            </form>
+        @endauth
+    </div>
 </body>
 </html>

@@ -1,11 +1,118 @@
 @import 'tailwindcss';
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
-@source '../**/*.blade.php';
-@source '../**/*.js';
-
-@theme {
+/* Font settings */
+:root {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+/* Global Styles */
+body {
+    font-family: var(--font-sans);
+}
+
+/* Hero Section */
+.hero-banner {
+    min-height: 600px;
+    background: url('../images/bags/hero-bg.jpg') center/cover no-repeat fixed;
+    align-items: center;
+}
+
+.hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+/* Category Cards */
+.category-card {
+    transition: all 0.3s ease;
+    height: 200px;
+}
+
+.category-card:hover {
+    transform: translateY(-5px);
+}
+
+.category-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1rem;
+    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+}
+
+/* Product Cards */
+.product-card {
+    transition: all 0.3s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+}
+
+.product-card img {
+    height: 250px;
+    object-fit: cover;
+}
+
+/* Buttons */
+.btn-primary {
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* User Account Styles */
+.list-group-item-action {
+    border: none;
+    padding: 0.75rem 1rem;
+    border-radius: 0.375rem;
+}
+
+.list-group-item-action:hover {
+    background-color: #f8f9fa;
+}
+
+.list-group-item-action.active {
+    background-color: #0d6efd;
+    color: white;
+}
+
+.tab-content {
+    min-height: 400px;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.card-header {
+    background-color: transparent;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+/* Cart Icon Styles */
+.nav-link .bi-cart3 {
+    font-size: 1.2rem;
+}
+
+.badge {
+    font-size: 0.6rem;
+    padding: 0.25em 0.6em;
+}
+
+/* Hover effect for cart icon */
+.nav-link:hover .bi-cart3 {
+    color: #0d6efd;
+    transform: scale(1.1);
+    transition: all 0.2s ease;
 }

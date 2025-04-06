@@ -16,34 +16,22 @@ class BagController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $bags = Bag::withTrashed()->with('images');
-            
+            $bags = Bag::with('category', 'images'); // Ensure relationships are loaded
+
             return DataTables::of($bags)
-                ->addColumn('image', function($bag) {
-                    return $bag->primaryImage ? 
-                        '<img src="'.asset($bag->primaryImage->image_path).'" height="50">' : 
-                        'No image';
+                ->addColumn('image', function ($bag) {
+                    return $bag->primaryImage
+                        ? '<img src="' . asset($bag->primaryImage->image_path) . '" height="50">'
+                        : 'No image';
                 })
-                ->addColumn('status', function($bag) {
-                    return $bag->deleted_at ? 
-                        '<span class="badge bg-danger">Deleted</span>' : 
-                        '<span class="badge bg-success">Active</span>';
+                ->addColumn('category', function ($bag) {
+                    return $bag->category->name ?? 'Uncategorized';
                 })
-                ->addColumn('action', function($bag) {
-                    $buttons = '<div class="btn-group">';
-                    if ($bag->trashed()) {
-                        $buttons .= '<button onclick="restoreBag('.$bag->id.')" class="btn btn-success btn-sm">
-                            <i class="bi bi-arrow-counterclockwise"></i> Restore</button>';
-                    } else {
-                        $buttons .= '<a href="'.route('bags.edit', $bag->id).'" class="btn btn-primary btn-sm">
-                            <i class="bi bi-pencil"></i> Edit</a>';
-                        $buttons .= '<button onclick="deleteBag('.$bag->id.')" class="btn btn-danger btn-sm">
-                            <i class="bi bi-trash"></i> Delete</button>';
-                    }
-                    $buttons .= '</div>';
-                    return $buttons;
+                ->addColumn('action', function ($bag) {
+                    return '<a href="' . route('bags.edit', $bag->id) . '" class="btn btn-sm btn-primary">Edit</a>
+                            <button onclick="deleteBag(' . $bag->id . ')" class="btn btn-sm btn-danger">Delete</button>';
                 })
-                ->rawColumns(['image', 'status', 'action'])
+                ->rawColumns(['image', 'action'])
                 ->make(true);
         }
 
@@ -56,36 +44,35 @@ class BagController extends Controller
     }
 
     public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'name' => 'required|max:255',
-            'description' => 'required',
-            'price' => 'required|numeric',
-            'images' => 'required|array|min:1',
-            'images.*' => 'image|mimes:jpeg,png,jpg|max:2048'
-        ]);
+{
+    $validated = $request->validate([
+        'name' => 'required|max:255',
+        'description' => 'required',
+        'price' => 'required|numeric',
+        'images.*' => 'required|image|mimes:jpeg,png,jpg|max:2048'
+    ]);
 
-        $bag = Bag::create([
-            'name' => $validated['name'],
-            'description' => $validated['description'],
-            'price' => $validated['price'],
-        ]);
+    $bag = Bag::create([
+        'name' => $validated['name'],
+        'description' => $validated['description'],
+        'price' => $validated['price'],
+    ]);
 
-        if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $index => $imageFile) {
-                $fileName = time() . '_' . $index . '.' . $imageFile->extension();
-                $imageFile->move(public_path('images/bags'), $fileName);
+    if ($request->hasFile('images')) {
+        foreach ($request->file('images') as $index => $imageFile) {
+            $fileName = time() . '_' . $index . '.' . $imageFile->extension();
+            $imageFile->move(public_path('images/bags'), $fileName);
 
-                BagImage::create([
-                    'bag_id' => $bag->id,
-                    'image_path' => 'images/bags/' . $fileName,
-                    'is_primary' => $index === 0 // First image is primary
-                ]);
-            }
+            BagImage::create([
+                'bag_id' => $bag->id,
+                'image_path' => $fileName, // Store only the filename
+                'is_primary' => $index === 0
+            ]);
         }
-
-        return redirect()->route('bags.index')->with('success', 'Bag created successfully');
     }
+
+    return redirect()->route('bags.index')->with('success', 'Bag created successfully');
+}
 
     public function edit(Bag $bag)
     {
@@ -100,13 +87,13 @@ class BagController extends Controller
             'price' => 'required|numeric',
             'images.*' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
         ]);
-
+    
         $bag->update([
             'name' => $validated['name'],
             'description' => $validated['description'],
             'price' => $validated['price'],
         ]);
-
+    
         if ($request->hasFile('images')) {
             // Delete old images if replace_images is checked
             if ($request->input('replace_images')) {
@@ -115,7 +102,7 @@ class BagController extends Controller
                     $image->delete();
                 }
             }
-
+    
             foreach ($request->file('images') as $index => $image) {
                 $imageName = time() . '_' . $index . '.' . $image->extension();
                 $image->move(public_path('images/bags'), $imageName);
@@ -127,18 +114,15 @@ class BagController extends Controller
                 ]);
             }
         }
-
+    
         return redirect()->route('bags.index')->with('success', 'Bag updated successfully');
     }
 
-    public function destroy(Bag $bag)
+    public function destroy($id)
     {
-        foreach ($bag->images as $image) {
-            unlink(public_path($image->image_path));
-        }
-        $bag->delete();
-
-        return redirect()->route('bags.index')->with('success', 'Bag deleted successfully');
+        $bag = Bag::findOrFail($id);
+        $bag->delete(); // Soft delete the product
+        return redirect()->route('admin.bags.index')->with('success', 'Product deleted successfully.');
     }
 
     public function import(Request $request)

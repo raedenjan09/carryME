@@ -15,4 +15,9 @@ class BagImage extends Model
     {
         return $this->belongsTo(Bag::class);
     }
+
+    public function getImagePathAttribute($value)
+    {
+        return basename($value); // This will return just the filename
+    }
 }
