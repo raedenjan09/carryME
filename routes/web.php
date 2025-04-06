@@ -23,19 +23,21 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout');
 // Protected Routes
 Route::middleware(['auth'])->group(function () {
     // Admin Routes
-    Route::middleware(['auth', 'admin'])->group(function () {
-        Route::prefix('admin')->group(function () {
-            Route::get('/dashboard', function () {
-                return view('admin.dashboard');
-            })->name('admin.dashboard');
-            
-            Route::resource('bags', BagController::class);
-            Route::post('bags/import', [BagController::class, 'import'])->name('bags.import');
-            Route::post('bags/{bag}/restore', [BagController::class, 'restore'])->name('bags.restore');
-        });
+    Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
+        Route::get('/dashboard', function () {
+            return view('admin.dashboard');
+        })->name('admin.dashboard');
+        
+        Route::resource('bags', BagController::class);
+        Route::post('bags/import', [BagController::class, 'import'])->name('bags.import');
+        Route::post('bags/{bag}/restore', [BagController::class, 'restore'])->name('bags.restore');
 
         Route::delete('/bag-images/{bagImage}', [BagImageController::class, 'destroy'])->name('bag-images.destroy');
         Route::post('/bag-images/{bagImage}/make-primary', [BagImageController::class, 'makePrimary'])->name('bag-images.make-primary');
+
+        Route::get('/users', [UserController::class, 'index'])->name('admin.users.index');
+        Route::patch('/users/{user}/status', [UserController::class, 'updateStatus'])->name('admin.users.status');
+        Route::patch('/users/{user}/role', [UserController::class, 'updateRole'])->name('admin.users.role');
     });
 
     Route::resource('users', UserController::class);
@@ -44,6 +46,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/home', function() {
         return view('home');
     })->name('home');
+});
+
+// Middleware for active users
+Route::middleware(['auth', 'active'])->group(function () {
+    // Your protected routes here
 });
 
 // Test middleware route

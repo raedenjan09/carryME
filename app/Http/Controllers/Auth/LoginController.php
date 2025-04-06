@@ -13,6 +13,35 @@ class LoginController extends Controller
         return view('auth.login');
     }
 
+    protected function attemptLogin(Request $request)
+    {
+        $credentials = $request->only('email', 'password');
+        
+        if (Auth::attempt($credentials)) {
+            if (!Auth::user()->is_active) {
+                Auth::logout();
+                return false;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    protected function sendFailedLoginResponse(Request $request)
+    {
+        $user = \App\Models\User::where('email', $request->email)->first();
+        
+        if ($user && !$user->is_active) {
+            return redirect()->back()
+                ->withInput($request->only('email', 'remember'))
+                ->withErrors(['email' => 'Your account has been deactivated.']);
+        }
+
+        return redirect()->back()
+            ->withInput($request->only('email', 'remember'))
+            ->withErrors(['email' => trans('auth.failed')]);
+    }
+
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -20,7 +49,7 @@ class LoginController extends Controller
             'password' => ['required'],
         ]);
 
-        if (Auth::attempt($credentials)) {
+        if ($this->attemptLogin($request)) {
             $request->session()->regenerate();
             
             $user = Auth::user();
@@ -44,9 +73,7 @@ class LoginController extends Controller
             return redirect()->intended(route('home'));
         }
 
-        return back()->withErrors([
-            'email' => 'The provided credentials do not match our records.',
-        ]);
+        return $this->sendFailedLoginResponse($request);
     }
 
     public function logout(Request $request)

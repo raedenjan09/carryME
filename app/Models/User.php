@@ -21,7 +21,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role',  // Add this
+        'role',
+        'is_active',
     ];
 
     /**
@@ -43,6 +44,7 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'is_admin' => 'boolean',
+        'is_active' => 'boolean',
     ];
 
     /**
@@ -53,5 +55,34 @@ class User extends Authenticatable
     public function isAdmin()
     {
         return $this->role === 'admin';
+    }
+
+    /**
+     * Check if the user is active.
+     *
+     * @return bool
+     */
+    public function isActive()
+    {
+        return $this->is_active;
+    }
+
+    /**
+     * Boot the model.
+     *
+     * @return void
+     */
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::updated(function ($user) {
+            if ($user->isDirty('is_active') && !$user->is_active) {
+                // Force logout if user is deactivated
+                if (auth()->id() === $user->id) {
+                    auth()->logout();
+                }
+            }
+        });
     }
 }
