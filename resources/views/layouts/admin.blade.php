@@ -61,17 +61,35 @@
         </div>
     </nav>
 
+    <!-- Add this right after your navbar or at the top of your content -->
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
     <!-- Sidebar -->
     <div class="sidebar bg-dark text-white" style="width: 250px;">
         <div class="list-group list-group-flush">
             <a href="{{ route('admin.dashboard') }}" class="list-group-item list-group-item-action bg-dark text-white">
                 <i class="bi bi-speedometer2 me-2"></i> Dashboard
             </a>
-            <a href="{{ route('bags.index') }}" class="list-group-item list-group-item-action bg-dark text-white">
+            <a href="{{ route('admin.bags.index') }}" class="list-group-item list-group-item-action bg-dark text-white">
                 <i class="bi bi-bag me-2"></i> Bags
             </a>
             <a href="{{ route('admin.users.index') }}" class="list-group-item list-group-item-action bg-dark text-white">
                 <i class="bi bi-people me-2"></i> Users
+            </a>
+            <a href="{{ route('admin.orders.index') }}" class="list-group-item list-group-item-action bg-dark text-white">
+                <i class="bi bi-cart me-2"></i> Orders
             </a>
             <!-- ...other links... -->
         </div>

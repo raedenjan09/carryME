@@ -3,43 +3,68 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\User;
 use App\Models\Order;
-use App\Models\Review;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class UserAccountController extends Controller
 {
     public function index()
     {
-        $user = auth()->user();
-        $orders = $user->orders()->with(['items.bag'])->latest()->get();
-        $reviews = $user->reviews()->with('bag')->latest()->get();
-        
-        return view('user.account.index', compact('user', 'orders', 'reviews'));
+        $user = Auth::user();
+        $orders = Order::where('user_id', $user->id)
+                      ->latest()
+                      ->take(5)
+                      ->get();
+
+        return view('user.account.index', compact('user', 'orders'));
     }
 
-    public function updateProfile(Request $request)
+    public function edit()
     {
+        $user = Auth::user();
+        return view('user.account.edit', compact('user'));
+    }
+
+    public function update(Request $request)
+    {
+        $user = Auth::user();
+        
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . auth()->id(),
-            'current_password' => 'nullable|required_with:password',
-            'password' => 'nullable|min:8|confirmed',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:255',
+            'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
         ]);
 
-        $user = auth()->user();
-        $user->name = $validated['name'];
-        $user->email = $validated['email'];
-
-        if ($request->filled('password')) {
-            if (!Hash::check($request->current_password, $user->password)) {
-                return back()->withErrors(['current_password' => 'The provided password does not match your current password.']);
+        if ($request->hasFile('profile_picture')) {
+            // Delete old profile picture if exists
+            if ($user->profile_picture) {
+                Storage::disk('public')->delete($user->profile_picture);
             }
-            $user->password = Hash::make($validated['password']);
+
+            // Store new profile picture
+            $path = $request->file('profile_picture')->store('profile-pictures', 'public');
+            $validated['profile_picture'] = $path;
         }
 
-        $user->save();
+        $user->update($validated);
 
-        return back()->with('success', 'Profile updated successfully!');
+        return redirect()->route('user.account')
+            ->with('success', 'Profile updated successfully');
+    }
+
+    public function orders()
+    {
+        $orders = auth()->user()->orders()->with(['items.bag'])->latest()->get();
+        return view('user.account.orders', compact('orders'));
+    }
+
+    public function reviews()
+    {
+        $reviews = auth()->user()->reviews()->with('bag')->latest()->get();
+        return view('user.account.reviews', compact('reviews'));
     }
 }

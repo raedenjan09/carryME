@@ -1,23 +1,29 @@
 <?php
 
-use Illuminate\Database\Seeder;
+namespace Database\Seeders;
+
 use App\Models\Category;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class CategorySeeder extends Seeder
 {
     public function run()
     {
         $categories = [
-            ['name' => 'Handbags', 'slug' => 'handbags', 'description' => 'Stylish handbags for every occasion.'],
-            ['name' => 'Backpacks', 'slug' => 'backpacks', 'description' => 'Durable and spacious backpacks.'],
-            ['name' => 'Clutches', 'slug' => 'clutches', 'description' => 'Elegant clutches for formal events.'],
+            'Shoulder Bags',
+            'Totes',
+            'Clutches',
+            'Backpacks',
+            'Cross-body Bags'
         ];
 
-        foreach ($categories as $categoryData) {
-            Category::firstOrCreate(
-                ['slug' => $categoryData['slug']], // Check for an existing slug
-                $categoryData // Insert if it doesn't exist
-            );
+        foreach ($categories as $categoryName) {
+            Category::create([
+                'name' => $categoryName,
+                'slug' => Str::slug($categoryName),
+                'description' => "Collection of $categoryName"
+            ]);
         }
     }
 }

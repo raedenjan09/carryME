@@ -14,11 +14,14 @@ return new class extends Migration
         Schema::create('bags', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('slug')->unique();
             $table->text('description');
             $table->decimal('price', 10, 2);
             $table->string('image')->nullable();
-            $table->softDeletes(); // Add this line for soft deletes
+            $table->integer('stock')->default(0);
+            $table->foreignId('category_id')->constrained();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\BagsImport;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class BagController extends Controller
 {
@@ -28,7 +30,7 @@ class BagController extends Controller
                     return $bag->category->name ?? 'Uncategorized';
                 })
                 ->addColumn('action', function ($bag) {
-                    return '<a href="' . route('bags.edit', $bag->id) . '" class="btn btn-sm btn-primary">Edit</a>
+                    return '<a href="' . route('admin.bags.edit', $bag->id) . '" class="btn btn-sm btn-primary">Edit</a>
                             <button onclick="deleteBag(' . $bag->id . ')" class="btn btn-sm btn-danger">Delete</button>';
                 })
                 ->rawColumns(['image', 'action'])
@@ -40,39 +42,64 @@ class BagController extends Controller
 
     public function create()
     {
-        return view('admin.bags.create');
+        $categories = \App\Models\Category::all(); // Fetch all categories
+        return view('admin.bags.create', compact('categories'));
     }
 
     public function store(Request $request)
-{
-    $validated = $request->validate([
-        'name' => 'required|max:255',
-        'description' => 'required',
-        'price' => 'required|numeric',
-        'images.*' => 'required|image|mimes:jpeg,png,jpg|max:2048'
-    ]);
+    {
+        // Validate the request
+        $validated = $request->validate([
+            'name' => 'required|max:255',
+            'description' => 'required',
+            'price' => 'required|numeric|min:0',
+            'stock' => 'required|integer|min:0', // Validate stock
+            'images' => 'required|array|min:1',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048'
+        ]);
 
-    $bag = Bag::create([
-        'name' => $validated['name'],
-        'description' => $validated['description'],
-        'price' => $validated['price'],
-    ]);
+        try {
+            // Start a database transaction
+            DB::beginTransaction();
 
-    if ($request->hasFile('images')) {
-        foreach ($request->file('images') as $index => $imageFile) {
-            $fileName = time() . '_' . $index . '.' . $imageFile->extension();
-            $imageFile->move(public_path('images/bags'), $fileName);
-
-            BagImage::create([
-                'bag_id' => $bag->id,
-                'image_path' => $fileName, // Store only the filename
-                'is_primary' => $index === 0
+            // Create the bag
+            $bag = Bag::create([
+                'name' => $validated['name'],
+                'slug' => Str::slug($validated['name']),
+                'description' => $validated['description'],
+                'price' => $validated['price'],
+                'stock' => $validated['stock'], // Save stock
             ]);
+
+            // Handle image uploads
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $index => $image) {
+                    $path = $image->store('bags', 'public');
+
+                    BagImage::create([
+                        'bag_id' => $bag->id,
+                        'image_path' => $path,
+                        'is_primary' => $index === 0, // First image is primary
+                    ]);
+                }
+            }
+
+            // Commit the transaction
+            DB::commit();
+
+            return redirect()->route('admin.bags.index')
+                ->with('success', 'Bag created successfully.');
+        } catch (\Exception $e) {
+            // Rollback the transaction on error
+            DB::rollBack();
+
+            \Log::error('Bag creation failed: ' . $e->getMessage());
+
+            return back()
+                ->withInput()
+                ->with('error', 'Failed to create bag. Please try again.');
         }
     }
-
-    return redirect()->route('bags.index')->with('success', 'Bag created successfully');
-}
 
     public function edit(Bag $bag)
     {
@@ -84,38 +111,31 @@ class BagController extends Controller
         $validated = $request->validate([
             'name' => 'required|max:255',
             'description' => 'required',
-            'price' => 'required|numeric',
+            'price' => 'required|numeric|min:0',
+            'stock' => 'required|integer|min:0', // Validate stock
             'images.*' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
         ]);
-    
+
         $bag->update([
             'name' => $validated['name'],
             'description' => $validated['description'],
             'price' => $validated['price'],
+            'stock' => $validated['stock'], // Update stock
         ]);
-    
+
         if ($request->hasFile('images')) {
-            // Delete old images if replace_images is checked
-            if ($request->input('replace_images')) {
-                foreach ($bag->images as $image) {
-                    unlink(public_path($image->image_path));
-                    $image->delete();
-                }
-            }
-    
             foreach ($request->file('images') as $index => $image) {
-                $imageName = time() . '_' . $index . '.' . $image->extension();
-                $image->move(public_path('images/bags'), $imageName);
-                
+                $path = $image->store('bags', 'public');
+
                 BagImage::create([
                     'bag_id' => $bag->id,
-                    'image_path' => 'images/bags/' . $imageName,
+                    'image_path' => $path,
                     'is_primary' => !$bag->images()->exists() && $index === 0
                 ]);
             }
         }
-    
-        return redirect()->route('bags.index')->with('success', 'Bag updated successfully');
+
+        return redirect()->route('admin.bags.index')->with('success', 'Bag updated successfully.');
     }
 
     public function destroy($id)
@@ -143,5 +163,28 @@ class BagController extends Controller
     {
         Bag::withTrashed()->find($id)->restore();
         return response()->json(['success' => true]);
+    }
+
+    public function updateStock(Request $request, Bag $bag)
+    {
+        $validated = $request->validate([
+            'stock' => 'required|integer|min:0'
+        ]);
+
+        try {
+            $bag->update([
+                'stock' => $validated['stock']
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Stock updated successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update stock'
+            ], 500);
+        }
     }
 }

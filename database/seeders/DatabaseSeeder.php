@@ -11,15 +11,17 @@ class DatabaseSeeder extends Seeder
         // Clear existing data
         \DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         \App\Models\User::truncate();
+        \App\Models\Category::truncate();
         \App\Models\Bag::truncate();
         \App\Models\Order::truncate();
+        \App\Models\OrderItem::truncate();
         \DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
+        // Run seeders in order
         $this->call([
+            CategorySeeder::class,
             UsersTableSeeder::class,
-            TestDataSeeder::class,
-            OrdersTableSeeder::class,
-            BagSeeder::class,
+            BagSeeder::class
         ]);
     }
 }

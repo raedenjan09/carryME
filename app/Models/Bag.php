@@ -4,12 +4,33 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 class Bag extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
-    protected $fillable = ['name', 'description', 'price', 'category_id'];
+    protected $fillable = [
+        'name',
+        'slug',
+        'description',
+        'price',
+        'image',
+        'stock',
+        'category_id'
+    ];
+
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::creating(function ($bag) {
+            if (!$bag->slug) {
+                $bag->slug = Str::slug($bag->name);
+            }
+        });
+    }
 
     public function category()
     {
@@ -39,6 +60,22 @@ class Bag extends Model
     public function getAverageRatingAttribute()
     {
         return $this->reviews()->avg('rating') ?? 0;
+    }
+
+    public function orders()
+    {
+        return $this->hasMany(OrderItem::class)->whereHas('order', function($query) {
+            $query->where('status', 'delivered');
+        });
+    }
+
+    public function uniqueBuyers()
+    {
+        return $this->orders()
+            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->select('orders.user_id')
+            ->distinct()
+            ->count();
     }
 }
 

@@ -11,14 +11,13 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('bag_id')->constrained()->onDelete('cascade');
             $table->decimal('total', 10, 2);
-            $table->enum('status', ['pending', 'completed', 'cancelled']);
-            $table->enum('payment_status', ['pending', 'paid', 'failed'])->default('pending');
+            $table->string('status')->default('pending');
             $table->string('shipping_address');
             $table->string('shipping_city');
-            $table->string('shipping_country');
-            $table->string('shipping_postal_code');
+            $table->string('shipping_country')->default('Philippines');
+            $table->string('shipping_postal_code')->nullable();
+            $table->string('payment_method')->default('credit_card');
             $table->timestamps();
         });
     }

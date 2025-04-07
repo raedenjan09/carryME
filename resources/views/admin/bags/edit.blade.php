@@ -6,7 +6,7 @@
 
     <div class="card shadow">
         <div class="card-body">
-            <form action="{{ route('bags.update', $bag) }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('admin.bags.update', $bag) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
                 
@@ -106,7 +106,7 @@
                 </div>
 
                 <div class="d-flex justify-content-between">
-                    <a href="{{ route('bags.index') }}" class="btn btn-secondary">Cancel</a>
+                    <a href="{{ route('admin.bags.index') }}" class="btn btn-secondary">Cancel</a>
                     <button type="submit" class="btn btn-primary">Update Bag</button>
                 </div>
             </form>
@@ -177,3 +177,10 @@
 </script>
 @endpush
 @endsection
+
+<?php
+public function edit(Bag $bag)
+{
+    $categories = \App\Models\Category::all(); // Fetch all categories
+    return view('admin.bags.edit', compact('bag', 'categories'));
+}

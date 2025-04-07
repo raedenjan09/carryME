@@ -1,6 +1,6 @@
+<?php
 protected $routeMiddleware = [
-    // ...existing middleware...
     'auth' => \App\Http\Middleware\Authenticate::class,
+    'verified' => \App\Http\Middleware\CustomVerifyEmail::class,
     'admin' => \App\Http\Middleware\AdminMiddleware::class,
-    // ...existing middleware...
 ];

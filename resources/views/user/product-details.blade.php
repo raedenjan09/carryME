@@ -26,28 +26,7 @@
         <div class="col-12">
             <h3>Customer Reviews</h3>
             
-            @auth
-                <form action="{{ route('products.review', $product->id) }}" method="POST" class="mb-4">
-                    @csrf
-                    <div class="mb-3">
-                        <label for="rating" class="form-label">Rating</label>
-                        <select name="rating" id="rating" class="form-select" required>
-                            <option value="">Select Rating</option>
-                            @for($i = 5; $i >= 1; $i--)
-                                <option value="{{ $i }}">{{ $i }} Stars</option>
-                            @endfor
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="comment" class="form-label">Your Review</label>
-                        <textarea name="comment" id="comment" rows="3" 
-                                  class="form-control" required></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Submit Review</button>
-                </form>
-            @else
-                <p>Please <a href="{{ route('login') }}">login</a> to leave a review.</p>
-            @endauth
+            
 
             <div class="reviews mt-4">
                 @forelse($product->reviews as $review)

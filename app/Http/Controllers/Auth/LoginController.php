@@ -48,10 +48,15 @@ class LoginController extends Controller
      */
     protected function authenticated(Request $request, $user)
     {
-        if ($user->role === 'admin') {
-            return redirect('/admin/dashboard');
+        if (!$user->hasVerifiedEmail()) {
+            auth()->logout();
+            return back()->with('warning', 'You need to verify your email first.');
         }
 
-        return redirect($this->redirectTo);
+        if ($user->role === 'admin') {
+            return redirect()->route('admin.dashboard');
+        }
+
+        return redirect()->route('user.dashboard');
     }
 }

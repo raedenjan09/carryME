@@ -89,7 +89,7 @@
         <div class="text-center py-5">
             <i class="bi bi-cart-x display-1 text-muted"></i>
             <p class="mt-3">Your cart is empty.</p>
-            <a href="{{ route('home') }}" class="btn btn-primary mt-3">
+            <a href="{{ route('user.dashboard') }}" class="btn btn-primary mt-3">
                 Continue Shopping
             </a>
         </div>

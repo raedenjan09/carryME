@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Bag;
 use App\Models\Order;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class DashboardController extends Controller
 {
@@ -24,10 +25,9 @@ class DashboardController extends Controller
                     'month' => $month->format('M Y'),
                     'total' => Order::whereYear('created_at', $month->year)
                         ->whereMonth('created_at', $month->month)
-                        ->where('payment_status', 'paid')
-                        ->sum('total'),
+                        ->sum('total') ?? 0,
                 ];
-            });
+            })->values()->toArray();
 
             // Fetch user growth data for the last 6 months
             $userGrowthData = $months->map(function ($month) {
@@ -35,44 +35,45 @@ class DashboardController extends Controller
                     'month' => $month->format('M Y'),
                     'count' => User::whereYear('created_at', $month->year)
                         ->whereMonth('created_at', $month->month)
-                        ->count(),
+                        ->count() ?? 0,
                 ];
-            });
-
-            // Fetch dashboard statistics
-            $data = [
-                'totalSales' => Order::where('payment_status', 'paid')->sum('total'),
-                'totalUsers' => User::count(),
-
-                return [
-                    'month' => $month->format('M Y'),
-                    'count' => $count
-                ];
-            });
+            })->values()->toArray();
 
             // Get dashboard statistics
             $data = [
-                'totalSales' => Order::sum('total'),
-                'totalUsers' => User::count(),
-                'totalProducts' => Bag::count(),
-                'totalOrders' => Order::count(),
-                'recentOrders' => Order::with('user')
+                'totalSales' => Order::sum('total') ?? 0,
+                'totalUsers' => User::count() ?? 0,
+                'totalProducts' => Bag::count() ?? 0,
+                'totalOrders' => Order::count() ?? 0,
+                'recentOrders' => Order::with(['user', 'items.bag'])
                     ->latest()
                     ->take(5)
                     ->get(),
                 'recentUsers' => User::latest()
                     ->take(5)
                     ->get(),
+                'recentBags' => Bag::with(['images' => function($query) {
+                        $query->where('is_primary', true);
+                    }])
+                    ->latest()
+                    ->take(5)
+                    ->get(),
                 'salesData' => $salesData,
                 'userGrowthData' => $userGrowthData
             ];
 
-            \Log::info('Dashboard Statistics:', $data);
+            Log::info('Dashboard Data Loaded Successfully', [
+                'total_sales' => $data['totalSales'],
+                'total_users' => $data['totalUsers'],
+                'total_products' => $data['totalProducts'],
+                'total_orders' => $data['totalOrders']
+            ]);
 
             return view('admin.dashboard', $data);
 
         } catch (\Exception $e) {
-            \Log::error('Dashboard Error: ' . $e->getMessage());
+            Log::error('Dashboard Error: ' . $e->getMessage());
+            
             return view('admin.dashboard', [
                 'error' => 'Error loading dashboard data: ' . $e->getMessage(),
                 'totalSales' => 0,
@@ -81,8 +82,8 @@ class DashboardController extends Controller
                 'totalOrders' => 0,
                 'recentOrders' => collect([]),
                 'recentUsers' => collect([]),
-                'salesData' => collect([]),
-                'userGrowthData' => collect([])
+                'salesData' => [],
+                'userGrowthData' => []
             ]);
         }
     }

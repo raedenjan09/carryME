@@ -2,11 +2,12 @@
 
 @section('content')
 <div class="container-fluid">
-    <h1 class="h3 mb-4">Add New Bag</h1>
-
-    <div class="card shadow">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Add New Bag</h6>
+        </div>
         <div class="card-body">
-            <form action="{{ route('bags.store') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('admin.bags.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="mb-3">
                     <label for="name" class="form-label">Name</label>
@@ -31,6 +32,33 @@
                     <input type="number" step="0.01" class="form-control @error('price') is-invalid @enderror" 
                            id="price" name="price" value="{{ old('price') }}">
                     @error('price')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="mb-3">
+                    <label for="category_id" class="form-label">Category</label>
+                    <select name="category_id" id="category_id" class="form-control @error('category_id') is-invalid @enderror" required>
+                        <option value="">Select a category</option>
+                        @foreach($categories as $category)
+                            <option value="{{ $category->id }}">{{ $category->name }}</option>
+                        @endforeach
+                    </select>
+                    @error('category_id')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="mb-3">
+                    <label for="stock" class="form-label">Stock</label>
+                    <input type="number" 
+                           class="form-control @error('stock') is-invalid @enderror" 
+                           id="stock" 
+                           name="stock" 
+                           value="{{ old('stock', 0) }}" 
+                           min="0" 
+                           required>
+                    @error('stock')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
@@ -62,7 +90,7 @@
                 </div>
 
                 <div class="d-flex justify-content-between">
-                    <a href="{{ route('bags.index') }}" class="btn btn-secondary">Cancel</a>
+                    <a href="{{ route('admin.bags.index') }}" class="btn btn-secondary">Cancel</a>
                     <button type="submit" class="btn btn-primary">Create Bag</button>
                 </div>
             </form>

@@ -9,13 +9,8 @@ class AdminMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
-        if (!auth()->check() || !auth()->user()->is_active) {
-            auth()->logout();
-            return redirect()->route('login')->with('error', 'Your account has been deactivated.');
-        }
-
-        if (!auth()->user()->role === 'admin') {
-            return redirect()->route('home')->with('error', 'Unauthorized access.');
+        if (!$request->user() || $request->user()->role !== 'admin') {
+            return redirect()->route('login');
         }
 
         return $next($request);

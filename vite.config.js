@@ -13,4 +13,11 @@ export default defineConfig({
             '@': '/resources',
         },
     },
+    server: {
+        host: '0.0.0.0',
+        port: 8000,
+        hmr: {
+            host: '172.20.10.5'  // Replace with your actual IP
+        },
+    },
 });

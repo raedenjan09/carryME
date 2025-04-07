@@ -5,9 +5,9 @@
 <div class="container-fluid">
     <h1 class="h3 mb-4">Dashboard</h1>
 
-    @if(session('error'))
+    @if(isset($error))
         <div class="alert alert-danger">
-            {{ session('error') }}
+            {{ $error }}
         </div>
     @endif
 
@@ -23,10 +23,82 @@
                         </div>
                         <div class="col-auto">
                             <i class="bi bi-currency-dollar fa-2x text-gray-300"></i>
+            </div>
+        </div>
+
+        <!-- Recent Bags -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Recent Bags</h6>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    @foreach($recentBags ?? [] as $bag)
+                    <a href="{{ route('admin.bags.edit', $bag->id) }}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ $bag->name }}</h6>
+                            <small>{{ $bag->created_at->diffForHumans() }}</small>
                         </div>
-                    </div>
+                        @if($bag->images->first())
+                        <div class="mt-2">
+                            <img src="{{ asset($bag->images->first()->image_path) }}" class="img-thumbnail" style="max-height: 50px" alt="Bag image">
+                        </div>
+                        @endif
+                    </a>
+                    @endforeach
+            </div>
+        </div>
+
+        <!-- Recent Bags -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Recent Bags</h6>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    @foreach($recentBags ?? [] as $bag)
+                    <a href="{{ route('admin.bags.edit', $bag->id) }}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ $bag->name }}</h6>
+                            <small>{{ $bag->created_at->diffForHumans() }}</small>
+                        </div>
+                        @if($bag->images->first())
+                        <div class="mt-2">
+                            <img src="{{ asset($bag->images->first()->image_path) }}" class="img-thumbnail" style="max-height: 50px" alt="Bag image">
+                        </div>
+                        @endif
+                    </a>
+                    @endforeach
+            </div>
+        </div>
+
+        <!-- Recent Bags -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Recent Bags</h6>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    @foreach($recentBags ?? [] as $bag)
+                    <a href="{{ route('admin.bags.edit', $bag->id) }}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ $bag->name }}</h6>
+                            <small>{{ $bag->created_at->diffForHumans() }}</small>
+                        </div>
+                        @if($bag->images->first())
+                        <div class="mt-2">
+                            <img src="{{ asset($bag->images->first()->image_path) }}" class="img-thumbnail" style="max-height: 50px" alt="Bag image">
+                        </div>
+                        @endif
+                    </a>
+                    @endforeach
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+</div>
+</div>
         </div>
 
         <div class="col-xl-3 col-md-6 mb-4">
@@ -165,6 +237,7 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Get data from controller with fallback

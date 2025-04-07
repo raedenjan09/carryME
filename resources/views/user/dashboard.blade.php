@@ -59,15 +59,18 @@
                 <div class="col-md-4">
                     <div class="card product-card h-100 border-0 shadow-sm">
                         <div class="position-relative">
-                            <img src="{{ asset('images/bags/' . ($product->primaryImage?->image_path ?? 'placeholder.jpg')) }}" 
-                                 class="card-img-top" alt="{{ $product->name }}" 
-                                 style="height: 250px; object-fit: cover;">
+                            <img 
+                                src="{{ asset('storage/' . ($product->primaryImage?->image_path ?? 'bags/placeholder.jpg')) }}" 
+                                alt="{{ $product->name }}"
+                                class="w-full h-48 object-cover"
+                                onerror="this.src='{{ asset('storage/bags/placeholder.jpg') }}'"
+                            >
                             @auth
-                                <form action="{{ route('cart.add') }}" method="POST" class="position-absolute top-0 end-0 m-2">
+                                <form action="{{ route('cart.add') }}" method="POST" class="d-inline">
                                     @csrf
                                     <input type="hidden" name="product_id" value="{{ $product->id }}">
-                                    <button type="submit" class="btn btn-primary rounded-circle p-2" title="Add to Cart">
-                                        <i class="bi bi-cart-plus"></i>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-cart-plus"></i> Add to Cart
                                     </button>
                                 </form>
                             @endauth
