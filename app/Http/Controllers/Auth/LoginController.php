@@ -26,7 +26,7 @@ class LoginController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = '/user/dashboard';
+    protected $redirectTo = '/home';
 
     /**
      * Create a new controller instance.
@@ -48,11 +48,23 @@ class LoginController extends Controller
      */
     protected function authenticated(Request $request, $user)
     {
-        if (!$user->hasVerifiedEmail()) {
+        // Check if user is deactivated
+        if (!$user->is_active) {
             auth()->logout();
-            return back()->with('warning', 'You need to verify your email first.');
+            return back()
+                ->withInput($request->only('email'))
+                ->with('error', 'Your account has been deactivated. Please contact the administrator.');
         }
 
+        // Check email verification
+        if (!$user->hasVerifiedEmail()) {
+            auth()->logout();
+            return back()
+                ->withInput($request->only('email'))
+                ->with('warning', 'Please verify your email address first.');
+        }
+
+        // Redirect based on role
         if ($user->role === 'admin') {
             return redirect()->route('admin.dashboard');
         }

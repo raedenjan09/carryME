@@ -47,7 +47,8 @@ class UserController extends Controller
                 ->make(true);
         }
 
-        return view('admin.users.index');
+        $users = User::where('id', '!=', auth()->id())->get(); // Get all users except current user
+        return view('admin.users.index', compact('users'));
     }
 
     /**
@@ -101,9 +102,13 @@ class UserController extends Controller
     /**
      * Update the status of the specified user.
      */
-    public function updateStatus(Request $request, User $user)
+    public function updateStatus(User $user)
     {
         try {
+            if ($user->role === 'admin') {
+                return back()->with('error', 'Cannot deactivate admin accounts');
+            }
+
             $was_active = $user->is_active;
             $user->update(['is_active' => !$user->is_active]);
 
@@ -114,15 +119,10 @@ class UserController extends Controller
                     ->delete();
             }
 
-            return response()->json([
-                'success' => true,
-                'message' => 'User status updated successfully'
-            ]);
+            return back()->with('success', 'User status updated successfully');
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error updating user status'
-            ], 500);
+            \Log::error('Error updating user status: ' . $e->getMessage());
+            return back()->with('error', 'Error updating user status');
         }
     }
 

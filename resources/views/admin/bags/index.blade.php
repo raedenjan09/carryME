@@ -5,7 +5,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3">Manage Bags</h1>
         <div>
-            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#importModal">
+            <button type="button" class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#importModal">
                 <i class="bi bi-file-excel"></i> Import Excel
             </button>
             <a href="{{ route('admin.bags.create') }}" class="btn btn-primary">
@@ -80,7 +80,41 @@
 
 @push('scripts')
 <script>
-    // JavaScript for DataTables and stock updates
+$(document).ready(function() {
+    $('#bagsTable').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: "{{ route('admin.bags.index') }}",
+        columns: [
+            { data: 'name', name: 'name' },
+            { data: 'description', name: 'description' },
+            { 
+                data: 'price',
+                name: 'price',
+                render: function(data) {
+                    return '$' + parseFloat(data).toFixed(2);
+                }
+            },
+            { data: 'category', name: 'category' },
+            { data: 'stock', name: 'stock' },
+            { 
+                data: 'image',
+                name: 'image',
+                orderable: false,
+                searchable: false,
+                render: function(data) {
+                    return data ? `<img src="${data}" height="50" class="img-thumbnail">` : 'No image';
+                }
+            },
+            {
+                data: 'action',
+                name: 'action',
+                orderable: false,
+                searchable: false
+            }
+        ]
+    });
+});
 </script>
 @endpush
 @endsection

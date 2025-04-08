@@ -76,24 +76,32 @@
         </div>
     @endif
 
-    <!-- Sidebar -->
-    <div class="sidebar bg-dark text-white" style="width: 250px;">
-        <div class="list-group list-group-flush">
-            <a href="{{ route('admin.dashboard') }}" class="list-group-item list-group-item-action bg-dark text-white">
-                <i class="bi bi-speedometer2 me-2"></i> Dashboard
-            </a>
-            <a href="{{ route('admin.bags.index') }}" class="list-group-item list-group-item-action bg-dark text-white">
-                <i class="bi bi-bag me-2"></i> Bags
-            </a>
-            <a href="{{ route('admin.users.index') }}" class="list-group-item list-group-item-action bg-dark text-white">
-                <i class="bi bi-people me-2"></i> Users
-            </a>
-            <a href="{{ route('admin.orders.index') }}" class="list-group-item list-group-item-action bg-dark text-white">
-                <i class="bi bi-cart me-2"></i> Orders
-            </a>
-            <!-- ...other links... -->
-        </div>
+    
+<!-- Sidebar -->
+<div class="sidebar bg-dark text-white" style="width: 250px;">
+    <div class="list-group list-group-flush">
+        <a href="{{ route('admin.dashboard') }}" class="list-group-item list-group-item-action bg-dark text-white">
+            <i class="bi bi-speedometer2 me-2"></i> Dashboard
+        </a>
+        <a href="{{ route('admin.bags.index') }}" class="list-group-item list-group-item-action bg-dark text-white">
+            <i class="bi bi-bag me-2"></i> Bags
+        </a>
+        <a href="{{ route('admin.users.index') }}" class="list-group-item list-group-item-action bg-dark text-white">
+            <i class="bi bi-people me-2"></i> Users
+        </a>
+        <a href="{{ route('admin.orders.index') }}" class="list-group-item list-group-item-action bg-dark text-white">
+            <i class="bi bi-cart me-2"></i> Orders
+        </a>
+        <a href="{{ route('admin.reviews.index') }}" class="list-group-item list-group-item-action bg-dark text-white">
+            <i class="bi bi-star me-2"></i> Reviews
+        </a>
     </div>
+</div>
+
+
+</li>
+
+        
 
     <!-- Main Content -->
     <div class="main-content">

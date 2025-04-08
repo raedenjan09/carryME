@@ -2,22 +2,19 @@
 
 namespace App\Http\Middleware;
 
-use Illuminate\Auth\Middleware\Authenticate as Middleware;
+use Closure;
 use Illuminate\Http\Request;
 
-class Authenticate extends Middleware
+class Authenticate
 {
-    protected function redirectTo(Request $request): ?string
+    public function handle(Request $request, Closure $next)
     {
-        if (!$request->expectsJson()) {
-            return route('login');
-        }
-        
         if (auth()->check() && !auth()->user()->is_active) {
             auth()->logout();
-            return route('login');
+            return redirect()->route('login')
+                ->with('error', 'Your account has been deactivated. Please contact the administrator.');
         }
-        
-        return null;
+
+        return $next($request);
     }
 }

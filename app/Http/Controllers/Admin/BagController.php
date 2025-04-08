@@ -18,22 +18,29 @@ class BagController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $bags = Bag::with('category', 'images'); // Ensure relationships are loaded
+            $bags = Bag::with(['images' => function($query) {
+                $query->where('is_primary', true);
+            }]);
 
             return DataTables::of($bags)
                 ->addColumn('image', function ($bag) {
-                    return $bag->primaryImage
-                        ? '<img src="' . asset($bag->primaryImage->image_path) . '" height="50">'
-                        : 'No image';
+                    $primaryImage = $bag->images->first();
+                    return $primaryImage ? $primaryImage->image_path : null;
                 })
                 ->addColumn('category', function ($bag) {
-                    return $bag->category->name ?? 'Uncategorized';
+                    return $bag->category ? $bag->category->name : 'Uncategorized';
                 })
                 ->addColumn('action', function ($bag) {
-                    return '<a href="' . route('admin.bags.edit', $bag->id) . '" class="btn btn-sm btn-primary">Edit</a>
-                            <button onclick="deleteBag(' . $bag->id . ')" class="btn btn-sm btn-danger">Delete</button>';
+                    return '
+                        <a href="'.route('admin.bags.edit', $bag->id).'" class="btn btn-sm btn-primary">Edit</a>
+                        <form action="'.route('admin.bags.destroy', $bag->id).'" method="POST" class="d-inline">
+                            '.csrf_field().'
+                            '.method_field('DELETE').'
+                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm(\'Are you sure?\')">Delete</button>
+                        </form>
+                    ';
                 })
-                ->rawColumns(['image', 'action'])
+                ->rawColumns(['action', 'image'])
                 ->make(true);
         }
 
@@ -48,62 +55,60 @@ class BagController extends Controller
 
     public function store(Request $request)
     {
-        // Validate the request
         $validated = $request->validate([
             'name' => 'required|max:255',
             'description' => 'required',
             'price' => 'required|numeric|min:0',
-            'stock' => 'required|integer|min:0', // Validate stock
+            'stock' => 'required|integer|min:0',
+            'category_id' => 'required|exists:categories,id',
             'images' => 'required|array|min:1',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
         try {
-            // Start a database transaction
             DB::beginTransaction();
 
-            // Create the bag
             $bag = Bag::create([
                 'name' => $validated['name'],
                 'slug' => Str::slug($validated['name']),
                 'description' => $validated['description'],
                 'price' => $validated['price'],
-                'stock' => $validated['stock'], // Save stock
+                'stock' => $validated['stock'],
+                'category_id' => $validated['category_id']
             ]);
 
-            // Handle image uploads
             if ($request->hasFile('images')) {
+                $uploadPath = public_path('images/bags');
+                if (!file_exists($uploadPath)) {
+                    mkdir($uploadPath, 0755, true);
+                }
+
                 foreach ($request->file('images') as $index => $image) {
-                    $path = $image->store('bags', 'public');
+                    $fileName = time() . '_' . $index . '.' . $image->getClientOriginalExtension();
+                    $image->move($uploadPath, $fileName);
 
                     BagImage::create([
                         'bag_id' => $bag->id,
-                        'image_path' => $path,
-                        'is_primary' => $index === 0, // First image is primary
+                        'image_path' => 'images/bags/' . $fileName,
+                        'is_primary' => $index === 0
                     ]);
                 }
             }
 
-            // Commit the transaction
             DB::commit();
+            return redirect()->route('admin.bags.index')->with('success', 'Bag created successfully');
 
-            return redirect()->route('admin.bags.index')
-                ->with('success', 'Bag created successfully.');
         } catch (\Exception $e) {
-            // Rollback the transaction on error
             DB::rollBack();
-
             \Log::error('Bag creation failed: ' . $e->getMessage());
-
-            return back()
-                ->withInput()
-                ->with('error', 'Failed to create bag. Please try again.');
+            return back()->withInput()->with('error', 'Failed to create bag: ' . $e->getMessage());
         }
     }
 
     public function edit(Bag $bag)
     {
-        return view('admin.bags.edit', compact('bag'));
+        $categories = \App\Models\Category::all(); // Fetch all categories
+        return view('admin.bags.edit', compact('bag', 'categories'));
     }
 
     public function update(Request $request, Bag $bag)
@@ -116,26 +121,44 @@ class BagController extends Controller
             'images.*' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
         ]);
 
-        $bag->update([
-            'name' => $validated['name'],
-            'description' => $validated['description'],
-            'price' => $validated['price'],
-            'stock' => $validated['stock'], // Update stock
-        ]);
+        try {
+            DB::beginTransaction();
 
-        if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $index => $image) {
-                $path = $image->store('bags', 'public');
+            // Update bag details
+            $bag->update([
+                'name' => $validated['name'],
+                'description' => $validated['description'],
+                'price' => $validated['price'],
+                'stock' => $validated['stock']
+            ]);
 
-                BagImage::create([
-                    'bag_id' => $bag->id,
-                    'image_path' => $path,
-                    'is_primary' => !$bag->images()->exists() && $index === 0
-                ]);
+            // Handle new images if any
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $image) {
+                    $path = $image->store('bags', 'public');
+                    
+                    BagImage::create([
+                        'bag_id' => $bag->id,
+                        'image_path' => $path,
+                        'is_primary' => !$bag->images()->exists()
+                    ]);
+                }
             }
-        }
 
-        return redirect()->route('admin.bags.index')->with('success', 'Bag updated successfully.');
+            DB::commit();
+
+            return redirect()
+                ->route('admin.bags.index')
+                ->with('success', 'Bag updated successfully');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Bag update failed: ' . $e->getMessage());
+
+            return back()
+                ->withInput()
+                ->with('error', 'Failed to update bag. Please try again.');
+        }
     }
 
     public function destroy($id)
@@ -153,9 +176,12 @@ class BagController extends Controller
 
         try {
             Excel::import(new BagsImport, $request->file('excel_file'));
-            return redirect()->route('bags.index')->with('success', 'Products imported successfully');
+            
+            return redirect()->route('admin.bags.index')
+                ->with('success', 'Bags imported successfully');
         } catch (\Exception $e) {
-            return redirect()->route('bags.index')->with('error', 'Error importing products: ' . $e->getMessage());
+            return redirect()->route('admin.bags.index')
+                ->with('error', 'Error importing bags: ' . $e->getMessage());
         }
     }
 

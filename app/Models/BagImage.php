@@ -18,6 +18,6 @@ class BagImage extends Model
 
     public function getImagePathAttribute($value)
     {
-        return basename($value); // This will return just the filename
+        return asset($value); // This will return the full URL to the image
     }
 }

@@ -38,6 +38,15 @@
                     @enderror
                 </div>
 
+                <div class="mb-3">
+                    <label for="stock" class="form-label">Stock</label>
+                    <input type="number" class="form-control @error('stock') is-invalid @enderror" 
+                           id="stock" name="stock" value="{{ old('stock', $bag->stock) }}">
+                    @error('stock')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
                 <!-- Image Management Section -->
                 <div class="card mb-4">
                     <div class="card-header">
@@ -50,7 +59,7 @@
                             @forelse($bag->images as $image)
                                 <div class="col-md-3 col-sm-6 mb-3">
                                     <div class="position-relative">
-                                        <img src="{{ asset($image->image_path) }}" 
+                                        <img src="{{ $image->image_path }}" 
                                              class="img-thumbnail" 
                                              alt="Bag Image">
                                         @if($image->is_primary)
@@ -178,9 +187,3 @@
 @endpush
 @endsection
 
-<?php
-public function edit(Bag $bag)
-{
-    $categories = \App\Models\Category::all(); // Fetch all categories
-    return view('admin.bags.edit', compact('bag', 'categories'));
-}

@@ -179,6 +179,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/bags/{bag}/edit', [BagController::class, 'edit'])->name('bags.edit');
         Route::put('/bags/{bag}', [BagController::class, 'update'])->name('bags.update');
         Route::delete('/bags/{bag}', [BagController::class, 'destroy'])->name('bags.destroy');
+Route::post('bags/import', [BagController::class, 'import'])->name('bags.import');
     });
 
     // User routes with email verification
@@ -188,5 +189,33 @@ Route::middleware(['auth'])->group(function () {
     });
 });
 
+Route::middleware(['auth'])->group(function () {
+    Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        // ... other routes ...
+        Route::patch('/users/{user}/status', [UserController::class, 'updateStatus'])->name('users.status');
+        Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    });
+});
+
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    // Reviews Routes
+    Route::controller(App\Http\Controllers\Admin\ReviewController::class)->group(function () {
+        Route::get('reviews', 'index')->name('reviews.index');
+        Route::get('reviews/stats', 'getStats')->name('reviews.stats');
+        Route::delete('reviews/{review}', 'destroy')->name('reviews.destroy');
+    });
 
 
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    // Orders Routes
+    Route::controller(App\Http\Controllers\Admin\OrderController::class)->group(function () {
+        Route::get('orders', 'index')->name('orders.index');
+        Route::get('orders/{order}', 'show')->name('orders.show');
+        Route::patch('orders/{order}/status', 'updateStatus')->name('orders.update-status');
+        Route::get('orders/{order}', [OrderController::class, 'show'])->name('admin.orders.show');
+    });
+});
+
+
+});

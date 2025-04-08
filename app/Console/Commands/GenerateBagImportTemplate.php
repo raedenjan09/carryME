@@ -20,11 +20,8 @@ class GenerateBagImportTemplate extends Command
         $sheet->setCellValue('A1', 'name');
         $sheet->setCellValue('B1', 'description');
         $sheet->setCellValue('C1', 'price');
-
-        // Add sample data
-        $sheet->setCellValue('A2', 'Sample Bag');
-        $sheet->setCellValue('B2', 'This is a sample description');
-        $sheet->setCellValue('C2', '999.99');
+        $sheet->setCellValue('D1', 'stock');
+        $sheet->setCellValue('E1', 'category_id');
 
         // Create storage directory if it doesn't exist
         if (!file_exists(public_path('templates'))) {
